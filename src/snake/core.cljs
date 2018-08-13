@@ -7,14 +7,14 @@
 (def game-size 500)
 
 (defonce game (p/create-game game-size game-size))
-(def default-snake {:head [100 50]
-                    :layout (vec (repeat 10 :l))
-                    :direction :r
+(def default-snake {:head       [100 50]
+                    :layout     (vec (repeat 10 :l))
+                    :direction  :r
                     :max-length 10})
-(def initial-state {:snake default-snake
+(def initial-state {:snake                default-snake
                     :time-between-updates 100
-                    :last-update-time 0
-                    :food nil})
+                    :last-update-time     0
+                    :food                 nil})
 (defonce state (atom initial-state))
 
 (def snake-step 25)
@@ -42,9 +42,18 @@
      :d (+ start-y step)
      start-y)])
 
-(defn make-line [from to]
-  [:line (zipmap [:x1 :y1 :x2 :y2]
-                 (concat from to))])
+(defn average [& xs]
+  (int (/ (reduce + 0 xs)
+          (count xs))))
+
+(defn make-segment [[from-x from-y] [to-x to-y]]
+  [:fill {:color "green"}
+   [:rect {:x      (- (average from-x to-x)
+                      (/ snake-step 2))
+           :y      (- (average from-y to-y)
+                      (/ snake-step 2))
+           :width  (- snake-step 5)
+           :height (- snake-step 5)}]])
 
 (defn rand-coord []
   (-> (rand-int (/ game-size snake-step))
@@ -66,10 +75,11 @@
 (defn render-snake [snake]
   (->> (get-snake-coords snake)
        (partition 2 1)
-       (map #(apply make-line %))))
+       (map #(apply make-segment %))))
 
 (defn render-food [[food-x food-y]]
-  [:ellipse {:x food-x :y food-y :width (/ snake-step 2) :height (/ snake-step 2)}])
+  [:fill {:color "blue"}
+   [:ellipse {:x food-x :y food-y :width (- snake-step 7) :height (- snake-step 7)}]])
 
 (def game-over-screen
   (reify p/Screen
@@ -77,7 +87,9 @@
     (on-hide [this])
     (on-render [this]
       (p/render game
-                [[:text {:value "Game Over" :x (/ game-size 2) :y (/ game-size 2) :size 15 :font "Georgia" :style :bold}]]))))
+                [[:image {:name "background.jpg" :x 0 :y 0 :width game-size :height game-size}]
+                 [:fill {:color "white"} [:text {:value "Game Over" :x (/ game-size 2) :y (/ game-size 2)
+                                                 :size  30 :font "Georgia" :style :bold :halign :center}]]]))))
 
 (def main-screen
   (reify p/Screen
@@ -88,12 +100,12 @@
       (let [{:keys [snake last-update-time time-between-updates food] :as current-state} @state
             time (p/get-total-time game)]
         (p/render game
-                  [[:fill {:color "gray"}
-                    [:rect {:x 0 :y 0 :width game-size :height game-size}]]
+                  [[:image {:name "background.jpg" :x 0 :y 0 :width game-size :height game-size}]
                    (render-snake snake)
                    (render-food food)])
         (when (> time (+ last-update-time time-between-updates))
-          (swap! state update-in [:snake :head] (fn [head] (step-in-direction head (:direction snake) snake-step)))
+          (swap! state update-in [:snake :head] (fn [head]
+                                                  (step-in-direction head (:direction snake) snake-step)))
           (swap! state update-in [:snake :layout] #(->> %
                                                         (cons (opposite-dir (:direction snake)))
                                                         (take (:max-length snake))))
@@ -118,17 +130,15 @@
 
 (.addEventListener js/document "keydown"
                    (fn [event]
-                     (println "Key press" (.-key event))
-                     (swap! state update-in [:snake :direction] #(case (.-key event)
-                                                                   "ArrowDown" :d
-                                                                   "ArrowUp" :u
-                                                                   "ArrowLeft" :l
-                                                                   "ArrowRight" :r
-                                                                   %))))
-(events/listen js/window "mousedown"
-               (fn [_]
-                 (let [screen (p/get-screen game)]
-                   (when (= screen game-over-screen)
-                     (reset! state initial-state)
-                     (p/set-screen game main-screen)))))
+                     (condp = (p/get-screen game)
+                       game-over-screen (when (= " " (.-key event))
+                                          (println "here")
+                                          (reset! state initial-state)
+                                          (p/set-screen game main-screen))
+                       main-screen (swap! state update-in [:snake :direction] #(case (.-key event)
+                                                                                 "ArrowDown" :d
+                                                                                 "ArrowUp" :u
+                                                                                 "ArrowLeft" :l
+                                                                                 "ArrowRight" :r
+                                                                                 %)))))
 

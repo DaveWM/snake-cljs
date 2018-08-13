@@ -10,4 +10,8 @@
                                        :asset-path "js/out"
                                        :output-to  "resources/public/js/main.js"
                                        :output-dir "resources/public/js/out"}}]}
-  :figwheel {:nrepl-port 9002})
+  :figwheel {:nrepl-port 9002}
+
+  :profiles {:dev {:dependencies [[cider/piggieback "0.3.8"]
+                                  [org.clojure/tools.nrepl "0.2.13"]]
+                   :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}})
