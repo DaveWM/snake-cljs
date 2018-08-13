@@ -73,9 +73,10 @@
        get-snake-coords
        (map (partial apply make-segment))))
 
-(defn render-food [[food-x food-y]]
-  [:fill {:color "lightblue"}
-   [:ellipse {:x food-x :y food-y :width (- snake-step 7) :height (- snake-step 7)}]])
+(defn render-food [[food-x food-y :as food-coords]]
+  (when food-coords
+    [:fill {:color "lightblue"}
+     [:ellipse {:x food-x :y food-y :width (- snake-step 7) :height (- snake-step 7)}]]))
 
 (def game-over-screen
   (reify p/Screen
