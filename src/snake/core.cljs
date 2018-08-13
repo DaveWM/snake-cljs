@@ -14,7 +14,8 @@
 (def initial-state {:snake                default-snake
                     :time-between-updates 100
                     :last-update-time     0
-                    :food                 nil})
+                    :food                 nil
+                    :score 0})
 (defonce state (atom initial-state))
 
 (def snake-step 25)
@@ -41,10 +42,6 @@
      :u (- start-y step)
      :d (+ start-y step)
      start-y)])
-
-(defn average [& xs]
-  (int (/ (reduce + 0 xs)
-          (count xs))))
 
 (defn make-segment [x y]
   [:fill {:color "green"}
@@ -85,10 +82,11 @@
     (on-show [this])
     (on-hide [this])
     (on-render [this]
-      (p/render game
-                [[:image {:name "background.jpg" :x 0 :y 0 :width game-size :height game-size}]
-                 [:fill {:color "white"} [:text {:value "Game Over" :x (/ game-size 2) :y (/ game-size 2)
-                                                 :size  30 :font "Georgia" :style :bold :halign :center}]]]))))
+      (let [{:keys [score]} @state]
+        (p/render game
+                  [[:image {:name "background.jpg" :x 0 :y 0 :width game-size :height game-size}]
+                   [:fill {:color "white"} [:text {:value (str "Game Over\nScore: " score) :x (/ game-size 2) :y (/ game-size 2)
+                                                   :size  30 :font "Georgia" :style :bold :halign :center :valign :center}]]])))))
 
 (def main-screen
   (reify p/Screen
@@ -96,10 +94,13 @@
       (swap! state #(assoc % :snake default-snake)))
     (on-hide [this])
     (on-render [this]
-      (let [{:keys [snake last-update-time time-between-updates food] :as current-state} @state
+      (let [{:keys [snake last-update-time time-between-updates food score] :as current-state} @state
             time (p/get-total-time game)]
         (p/render game
                   [[:image {:name "background.jpg" :x 0 :y 0 :width game-size :height game-size}]
+                   [:fill {:color "lightgray"}
+                    [:text {:value score :x (/ game-size 2) :y (/ game-size 2)
+                            :size  30 :font "Georgia" :style :bold :halign :center}]]
                    (render-snake snake)
                    (render-food food)])
         (when (> time (+ last-update-time time-between-updates))
@@ -112,6 +113,7 @@
 
           (when (= (:head snake) food)
             (swap! state update-in [:snake :max-length] inc)
+            (swap! state update :score (partial + 10))
             (swap! state assoc :food nil))
 
           (when (or (some out-of-bounds? (:head snake))
