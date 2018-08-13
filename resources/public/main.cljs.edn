@@ -1,3 +1,0 @@
-{:require  [snake.core]
- :init-fns []
- :compiler-options {:infer-externs true}}
