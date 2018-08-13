@@ -12,6 +12,4 @@
                                        :output-dir "resources/public/js/out"}}]}
   :figwheel {:nrepl-port 9002}
 
-  :profiles {:dev {:dependencies [[cider/piggieback "0.3.8"]
-                                  [org.clojure/tools.nrepl "0.2.13"]]
-                   :repl-options {:nrepl-middleware [cider.piggieback/wrap-cljs-repl]}}})
+  :profiles {:dev {:dependencies [[figwheel-sidecar "0.5.4-6"]]}})

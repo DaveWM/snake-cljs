@@ -46,14 +46,13 @@
   (int (/ (reduce + 0 xs)
           (count xs))))
 
-(defn make-segment [[from-x from-y] [to-x to-y]]
+(defn make-segment [x y]
   [:fill {:color "green"}
-   [:rect {:x      (- (average from-x to-x)
-                      (/ snake-step 2))
-           :y      (- (average from-y to-y)
-                      (/ snake-step 2))
-           :width  (- snake-step 5)
-           :height (- snake-step 5)}]])
+   (let [size (- snake-step 5)]
+     [:rect {:x      (- x (/ size 2))
+             :y      (- y (/ size 2))
+             :width  (- snake-step 5)
+             :height (- snake-step 5)}])])
 
 (defn rand-coord []
   (-> (rand-int (/ game-size snake-step))
@@ -73,12 +72,12 @@
      sections)))
 
 (defn render-snake [snake]
-  (->> (get-snake-coords snake)
-       (partition 2 1)
-       (map #(apply make-segment %))))
+  (->> snake
+       get-snake-coords
+       (map (partial apply make-segment))))
 
 (defn render-food [[food-x food-y]]
-  [:fill {:color "blue"}
+  [:fill {:color "lightblue"}
    [:ellipse {:x food-x :y food-y :width (- snake-step 7) :height (- snake-step 7)}]])
 
 (def game-over-screen
