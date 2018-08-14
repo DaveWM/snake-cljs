@@ -63,9 +63,9 @@
      (let [[direction & layout-tail] layout
            section-coord (step-in-direction head direction snake-step)
            snake-tail (-> snake
-                          (assoc :head (step-in-direction head direction snake-step))
+                          (assoc :head section-coord)
                           (assoc :layout layout-tail))]
-       (get-snake-coords snake-tail (conj sections section-coord)))
+       (recur snake-tail (conj sections section-coord)))
      sections)))
 
 (defn render-snake [snake]
@@ -87,7 +87,8 @@
         (p/render game
                   [[:image {:name "background.jpg" :x 0 :y 0 :width game-size :height game-size}]
                    [:fill {:color "white"} [:text {:value (str "Game Over\nScore: " score) :x (/ game-size 2) :y (/ game-size 2)
-                                                   :size  30 :font "Georgia" :style :bold :halign :center :valign :center}]]])))))
+                                                   :size  30 :style :bold :halign :center :valign :center
+                                                   :font "Audiowide"}]]])))))
 
 (def main-screen
   (reify p/Screen
@@ -101,7 +102,7 @@
                   [[:image {:name "background.jpg" :x 0 :y 0 :width game-size :height game-size}]
                    [:fill {:color "lightgray"}
                     [:text {:value score :x (/ game-size 2) :y (/ game-size 2)
-                            :size  30 :font "Georgia" :style :bold :halign :center}]]
+                            :size  30 :font "Audiowide" :style :bold :halign :center}]]
                    (render-snake snake)
                    (render-food food)])
         (when (> time (+ last-update-time time-between-updates))
@@ -134,7 +135,6 @@
                    (fn [event]
                      (condp = (p/get-screen game)
                        game-over-screen (when (= " " (.-key event))
-                                          (println "here")
                                           (reset! state initial-state)
                                           (p/set-screen game main-screen))
                        main-screen (swap! state update-in [:snake :direction] #(case (.-key event)
