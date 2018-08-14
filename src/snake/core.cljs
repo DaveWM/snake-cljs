@@ -100,6 +100,9 @@
             time (p/get-total-time game)]
         (p/render game
                   [[:image {:name "background.jpg" :x 0 :y 0 :width game-size :height game-size}]
+                   [:fill {:colors [0 0 0 0]}
+                    [:stroke {:color "white"}
+                     [:rect {:x 0 :y 0 :width (dec game-size) :height (dec game-size)}]]]
                    [:fill {:color "lightgray"}
                     [:text {:value score :x (/ game-size 2) :y (/ game-size 2)
                             :size  30 :font "Audiowide" :style :bold :halign :center}]]
